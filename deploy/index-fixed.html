@@ -610,6 +610,8 @@
                         if (result.success && result.imageUrl) {
                             console.log('✅ API生成成功');
                             this.generatedImage = result.imageUrl;
+                            // 预加载图片到缓存
+                            await this.preloadImage(this.generatedImage);
                             this.isGenerating = false;
                             this.showResult();
                             return;
@@ -619,6 +621,8 @@
                     // 如果API失败，使用演示图片
                     console.log('🎭 使用演示图片');
                     this.generatedImage = 'https://picsum.photos/280/280?random=' + Date.now();
+                    // 预加载图片到缓存
+                    await this.preloadImage(this.generatedImage);
                     this.isGenerating = false;
                     this.showResult();
                     
@@ -644,19 +648,48 @@
             flipCard() {
                 console.log('🔄 翻转卡片');
                 
-                if (this.elements.generatedImg && this.generatedImage) {
-                    this.elements.generatedImg.src = this.generatedImage;
+                if (!this.generatedImage) {
+                    console.warn('⚠️ 没有生成的图片可显示');
+                    return;
                 }
                 
-                if (this.elements.cardBack && this.elements.cardFront) {
-                    this.elements.cardBack.style.transform = 'rotateY(180deg)';
-                    this.elements.cardFront.style.transform = 'rotateY(0deg)';
+                // 预加载图片，确保完全加载后再翻转
+                const img = new Image();
+                img.onload = () => {
+                    console.log('✅ 图片预加载完成，开始翻转');
                     
-                    setTimeout(() => {
-                        this.elements.cardBack.style.display = 'none';
-                        this.elements.cardFront.style.display = 'block';
-                    }, 300);
+                    // 设置图片源
+                    if (this.elements.generatedImg) {
+                        this.elements.generatedImg.src = this.generatedImage;
+                    }
+                    
+                    // 开始翻转动画
+                    if (this.elements.cardBack && this.elements.cardFront) {
+                        this.elements.cardBack.style.transform = 'rotateY(180deg)';
+                        this.elements.cardFront.style.transform = 'rotateY(0deg)';
+                        
+                        setTimeout(() => {
+                            this.elements.cardBack.style.display = 'none';
+                            this.elements.cardFront.style.display = 'block';
+                        }, 300);
+                    }
+                };
+                
+                img.onerror = () => {
+                    console.error('❌ 图片加载失败');
+                    this.showError('图片加载失败，请重试');
+                };
+                
+                // 显示加载提示
+                if (this.elements.cardBack) {
+                    const loadingText = this.elements.cardBack.querySelector('h3');
+                    if (loadingText) {
+                        loadingText.textContent = '加载中...';
+                    }
                 }
+                
+                // 开始预加载
+                img.src = this.generatedImage;
             }
             
             showActionScreen() {
@@ -669,6 +702,12 @@
                     this.elements.cardFront.style.transform = 'rotateY(180deg)';
                     this.elements.cardBack.style.display = 'flex';
                     this.elements.cardFront.style.display = 'none';
+                    
+                    // 重置卡片背面文本
+                    const backTitle = this.elements.cardBack.querySelector('h3');
+                    if (backTitle) {
+                        backTitle.textContent = '你的AI写真';
+                    }
                 }
             }
             
@@ -848,6 +887,22 @@
                 }, 5000);
             }
             
+            // 预加载图片到缓存
+            preloadImage(imageUrl) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        console.log('✅ 图片预加载到缓存完成');
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        console.warn('⚠️ 图片预加载失败');
+                        resolve(); // 不阻塞流程
+                    };
+                    img.src = imageUrl;
+                });
+            }
+            
             // 预生成机制
             startPreGeneration() {
                 if (this.isPreGenerating || !this.currentImage) {
@@ -879,6 +934,8 @@
                         if (result.success && result.imageUrl) {
                             console.log('✅ 预生成成功');
                             this.preGeneratedImage = result.imageUrl;
+                            // 预加载到缓存
+                            await this.preloadImage(this.preGeneratedImage);
                             this.isPreGenerating = false;
                             return;
                         }
@@ -887,6 +944,8 @@
                     // 如果API失败，生成演示图片
                     console.log('🎭 预生成演示图片');
                     this.preGeneratedImage = 'https://picsum.photos/280/280?random=' + (Date.now() + 1000);
+                    // 预加载到缓存
+                    await this.preloadImage(this.preGeneratedImage);
                     this.isPreGenerating = false;
                     
                 } catch (error) {
