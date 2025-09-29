@@ -2,7 +2,7 @@
 window.NANO_CONFIG = {
     // API配置
     API_BASE_URL: 'https://api.nano-banana.com/v1',
-    API_KEY: 'your-nano-banana-api-key-here', // 请替换为您的真实API密钥
+    API_KEY: 'sk-3RNycSK4jptF86qmwtFAzYNiNAKEt0i1xNZZEufKs6OmU0Mm', // 真实API密钥已配置
     
     // 应用配置
     APP_NAME: 'Nano Photo',

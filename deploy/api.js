@@ -4,7 +4,7 @@ class NanoPhotoAPI {
         // Nano banana API 配置
         this.apiConfig = {
             baseURL: 'https://api.nano-banana.com/v1', // 替换为实际API地址
-            apiKey: process.env.NANO_API_KEY || 'your-api-key-here',
+            apiKey: window.NANO_CONFIG?.API_KEY || 'sk-3RNycSK4jptF86qmwtFAzYNiNAKEt0i1xNZZEufKs6OmU0Mm',
             timeout: 30000, // 30秒超时
             maxRetries: 3
         };
