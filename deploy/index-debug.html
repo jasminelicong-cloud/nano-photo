@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Photo - 调试版本</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 调试模式特殊样式 */
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 9999;
+            max-width: 200px;
+        }
+        .debug-info h4 {
+            margin: 0 0 5px 0;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info">
+        <h4>🔍 调试模式</h4>
+        <div>版本: Debug v1.0</div>
+        <div>错误监控: 已启用</div>
+        <div>详细日志: 已启用</div>
+    </div>
+
+    <div class="app-container">
+        <!-- 上传界面 -->
+        <div id="uploadScreen" class="screen upload-screen">
+            <div class="upload-content">
+                <h1 class="app-title">Nano Photo</h1>
+                <p class="app-subtitle">Create AI portraits with your photos</p>
+                
+                <div id="uploadArea" class="upload-area">
+                    <div class="upload-icon">📸</div>
+                    <h3>Upload Your Photo</h3>
+                    <p>Drag & drop or click to select</p>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成界面 -->
+        <div id="generatingScreen" class="screen generating-screen" style="display: none;">
+            <div class="generating-content">
+                <div class="loading-animation">
+                    <div class="loading-circle"></div>
+                </div>
+                <p class="loading-text">Analyzing your photo...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p class="loading-subtitle">Please Wait...</p>
+            </div>
+        </div>
+
+        <!-- 结果界面 -->
+        <div id="resultScreen" class="screen result-screen" style="display: none;">
+            <div class="result-content">
+                <div class="photo-card">
+                    <!-- 卡片背面 -->
+                    <div class="card-back">
+                        <div class="card-back-content">
+                            <h3>Your AI Portrait</h3>
+                            <p>Click to See</p>
+                            <div class="reveal-icon">👁️</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 卡片正面 -->
+                    <div class="card-front" style="display: none;">
+                        <img id="generatedImg" src="" alt="Generated Portrait" class="generated-image">
+                        <div class="image-actions">
+                            <button id="likeBtn" class="action-btn like-btn">👍</button>
+                            <button id="dislikeBtn" class="action-btn dislike-btn">👎</button>
+                            <button id="downloadBtn" class="action-btn download-btn">⬇️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作界面 -->
+        <div id="actionScreen" class="screen action-screen" style="display: none;">
+            <div class="action-content">
+                <h2>What's Next?</h2>
+                <div class="action-buttons">
+                    <button id="againBtn" class="primary-btn">Nano Photo Again!</button>
+                    <button id="backBtn" class="secondary-btn">Back to Start</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 脚本加载 -->
+    <script src="config.js"></script>
+    <script src="api-gemini.js"></script>
+    <script src="api-mock.js"></script>
+    <script src="script-debug.js"></script>
+</body>
+</html>
