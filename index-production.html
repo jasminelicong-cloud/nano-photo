@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Photo - AI写真生成器</title>
+    <meta name="description" content="使用Nano banana AI模型生成17种不同风格的专业写真照片">
+    <meta name="keywords" content="AI写真,人工智能,照片生成,写真,Nano Photo">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Nano Photo - AI写真生成器">
+    <meta property="og:description" content="使用AI技术生成专业写真照片，支持17种不同风格">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nanophoto.app">
+    <meta property="og:image" content="https://nanophoto.app/og-image.jpg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="api.js" as="script">
+    <link rel="preload" href="script-production.js" as="script">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 初始上传界面 -->
+        <div id="upload-screen" class="screen active">
+            <div class="header">
+                <h1 class="app-title">Nano Photo</h1>
+                <p class="subtitle">Create Amazing AI Portraits</p>
+            </div>
+            
+            <div class="upload-area">
+                <div class="upload-box" id="upload-box">
+                    <div class="upload-icon">📸</div>
+                    <h3>Upload Your Photo</h3>
+                    <p>Click or drag to upload your image</p>
+                    <small>支持 JPG, PNG 格式，最大 5MB</small>
+                    <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" hidden>
+                </div>
+            </div>
+            
+            <div class="features-info">
+                <div class="feature-item">
+                    <span class="feature-icon">🎨</span>
+                    <span class="feature-text">17种写真风格</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">⚡</span>
+                    <span class="feature-text">AI快速生成</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📱</span>
+                    <span class="feature-text">一键下载</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载界面 -->
+        <div id="loading-screen" class="screen">
+            <div class="header">
+                <h1 class="app-title">Nano Photo</h1>
+            </div>
+            
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Creating your AI portrait...</p>
+                <p class="loading-wait">Please Wait...</p>
+                <div class="loading-tips">
+                    <p>💡 小贴士：点赞喜欢的风格，系统会更频繁推荐</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 结果展示界面 -->
+        <div id="result-screen" class="screen">
+            <div class="header">
+                <h1 class="app-title">Nano Photo</h1>
+                <p class="style-name" id="style-name"></p>
+            </div>
+            
+            <div class="card-container">
+                <div class="photo-card" id="photo-card">
+                    <!-- 卡片背面 -->
+                    <div class="card-back">
+                        <div class="card-pattern"></div>
+                        <h3>Your AI Portrait is Ready!</h3>
+                        <p class="click-hint">Click to See</p>
+                        <div class="tap-icon">👆</div>
+                    </div>
+                    
+                    <!-- 卡片正面 -->
+                    <div class="card-front">
+                        <img id="generated-image" src="" alt="Generated Portrait" loading="lazy">
+                        <div class="action-buttons">
+                            <button class="action-btn like-btn" id="like-btn" title="喜欢这个风格">
+                                <span class="icon">👍</span>
+                                <span class="text">Like</span>
+                            </button>
+                            <button class="action-btn dislike-btn" id="dislike-btn" title="不喜欢这个风格">
+                                <span class="icon">👎</span>
+                                <span class="text">Dislike</span>
+                            </button>
+                            <button class="action-btn download-btn" id="download-btn" title="下载照片">
+                                <span class="icon">⬇️</span>
+                                <span class="text">Download</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 再次生成选项 -->
+            <div class="next-actions" id="next-actions" style="display: none;">
+                <button class="primary-btn" id="generate-again-btn">Nano Photo Again!</button>
+                <button class="secondary-btn" id="back-to-start-btn">Back to Start</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay for API calls -->
+    <div id="api-loading" class="api-loading" style="display: none;">
+        <div class="api-loading-content">
+            <div class="api-spinner"></div>
+            <p>Processing...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="api.js"></script>
+    <script src="script-production.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

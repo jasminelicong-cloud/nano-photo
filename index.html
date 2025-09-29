@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Photo - AI写真生成器</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 初始上传界面 -->
+        <div id="upload-screen" class="screen active">
+            <div class="header">
+                <h1 class="app-title">Nano Photo</h1>
+                <p class="subtitle">Create Amazing AI Portraits</p>
+            </div>
+            
+            <div class="upload-area">
+                <div class="upload-box" id="upload-box">
+                    <div class="upload-icon">📸</div>
+                    <h3>Upload Your Photo</h3>
+                    <p>Click or drag to upload your image</p>
+                    <input type="file" id="file-input" accept="image/*" hidden>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载界面 -->
+        <div id="loading-screen" class="screen">
+            <div class="header">
+                <h1 class="app-title">Nano Photo</h1>
+            </div>
+            
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Creating your AI portrait...</p>
+                <p class="loading-wait">Please Wait...</p>
+            </div>
+        </div>
+
+        <!-- 结果展示界面 -->
+        <div id="result-screen" class="screen">
+            <div class="header">
+                <h1 class="app-title">Nano Photo</h1>
+            </div>
+            
+            <div class="card-container">
+                <div class="photo-card" id="photo-card">
+                    <!-- 卡片背面 -->
+                    <div class="card-back">
+                        <div class="card-pattern"></div>
+                        <h3>Your AI Portrait is Ready!</h3>
+                        <p class="click-hint">Click to See</p>
+                        <div class="tap-icon">👆</div>
+                    </div>
+                    
+                    <!-- 卡片正面 -->
+                    <div class="card-front">
+                        <img id="generated-image" src="" alt="Generated Portrait">
+                        <div class="action-buttons">
+                            <button class="action-btn like-btn" id="like-btn">
+                                <span class="icon">👍</span>
+                                <span class="text">Like</span>
+                            </button>
+                            <button class="action-btn dislike-btn" id="dislike-btn">
+                                <span class="icon">👎</span>
+                                <span class="text">Dislike</span>
+                            </button>
+                            <button class="action-btn download-btn" id="download-btn">
+                                <span class="icon">⬇️</span>
+                                <span class="text">Download</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 再次生成选项 -->
+            <div class="next-actions" id="next-actions" style="display: none;">
+                <button class="primary-btn" id="generate-again-btn">Nano Photo Again!</button>
+                <button class="secondary-btn" id="back-to-start-btn">Back to Start</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
