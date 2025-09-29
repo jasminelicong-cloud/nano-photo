@@ -193,9 +193,6 @@ class NanoPhotoGeminiAPI {
 
 // 导出API类
 window.NanoPhotoGeminiAPI = NanoPhotoGeminiAPI;
+window.NanoPhotoAPI = NanoPhotoGeminiAPI; // 直接设置为主API类
 
-// 自动替换原有的API实例
-if (window.NanoPhotoAPI) {
-    console.log('🔄 替换为Gemini专用API');
-    window.NanoPhotoAPI = NanoPhotoGeminiAPI;
-}
+console.log('✅ Gemini API已加载并设置为主API');
