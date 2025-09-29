@@ -319,12 +319,12 @@
         <div id="uploadScreen" class="screen active">
             <div class="upload-content">
                 <h1 class="app-title">Nano Photo</h1>
-                <p class="app-subtitle">Create AI portraits with your photos</p>
+                <p class="app-subtitle">用你的照片创建AI写真</p>
                 
                 <div id="uploadArea" class="upload-area">
                     <div class="upload-icon">📸</div>
-                    <h3>Upload Your Photo</h3>
-                    <p>Drag & drop or click to select</p>
+                    <h3>上传你的照片</h3>
+                    <p>拖拽或点击选择照片</p>
                     <input type="file" id="fileInput" accept="image/*" style="display: none;">
                 </div>
             </div>
@@ -336,11 +336,11 @@
                 <div class="loading-animation">
                     <div class="loading-circle"></div>
                 </div>
-                <p class="loading-text">Analyzing your photo...</p>
+                <p class="loading-text">正在分析你的照片...</p>
                 <div class="progress-bar">
                     <div class="progress-fill"></div>
                 </div>
-                <p class="loading-subtitle">Please Wait...</p>
+                <p class="loading-subtitle">请稍候...</p>
             </div>
         </div>
 
@@ -351,8 +351,8 @@
                     <!-- 卡片背面 -->
                     <div class="card-back">
                         <div class="card-back-content">
-                            <h3>Your AI Portrait</h3>
-                            <p>Click to See</p>
+                            <h3>你的AI写真</h3>
+                            <p>点击查看</p>
                             <div class="reveal-icon">👁️</div>
                         </div>
                     </div>
@@ -376,11 +376,11 @@
         <!-- 操作界面 -->
         <div id="actionScreen" class="screen">
             <div class="action-content">
-                <h2>What's Next?</h2>
+                <h2>接下来做什么？</h2>
                 <p class="action-subtitle">继续创作更多AI写真，或返回首页上传新照片</p>
                 <div class="action-buttons">
-                    <button id="againBtn" class="primary-btn">Nano Photo Again!</button>
-                    <button id="backBtn" class="secondary-btn">Back to Start</button>
+                    <button id="againBtn" class="primary-btn">再来一张写真！</button>
+                    <button id="backBtn" class="secondary-btn">返回首页</button>
                 </div>
             </div>
         </div>
@@ -397,6 +397,11 @@
                 this.currentStyle = null;
                 this.generatedImage = null;
                 this.isGenerating = false;
+                
+                // 预生成机制
+                this.preGeneratedImage = null;
+                this.isPreGenerating = false;
+                this.preGenerationQueue = [];
                 
                 // 立即初始化，不等待DOM
                 this.init();
@@ -577,13 +582,13 @@
                 
                 if (this.elements.loadingText) {
                     if (progress < 30) {
-                        this.elements.loadingText.textContent = 'Analyzing your photo...';
+                        this.elements.loadingText.textContent = '正在分析你的照片...';
                     } else if (progress < 60) {
-                        this.elements.loadingText.textContent = 'Applying AI magic...';
+                        this.elements.loadingText.textContent = '正在施展AI魔法...';
                     } else if (progress < 90) {
-                        this.elements.loadingText.textContent = 'Creating your portrait...';
+                        this.elements.loadingText.textContent = '正在创作你的写真...';
                     } else {
-                        this.elements.loadingText.textContent = 'Almost done...';
+                        this.elements.loadingText.textContent = '即将完成...';
                     }
                 }
             }
@@ -631,6 +636,9 @@
             showResult() {
                 console.log('📸 显示结果');
                 this.showScreen('resultScreen');
+                
+                // 开始预生成下一张图片
+                this.startPreGeneration();
             }
             
             flipCard() {
@@ -683,11 +691,23 @@
             handleLike() {
                 console.log('👍 点赞');
                 this.showFeedback('👍 已记录您的喜好！');
+                // 点赞后也开始预生成，用户可能想要更多相似风格
+                if (!this.preGeneratedImage && !this.isPreGenerating) {
+                    this.startPreGeneration();
+                }
             }
             
             handleDislike() {
                 console.log('👎 点踩');
                 this.showFeedback('👎 已记录您的反馈！');
+                // 点踩后清除预生成的图片，重新生成不同风格
+                if (this.preGeneratedImage) {
+                    console.log('🗑️ 清除预生成图片，准备生成新风格');
+                    this.preGeneratedImage = null;
+                }
+                if (!this.isPreGenerating) {
+                    this.startPreGeneration();
+                }
             }
             
             handleDownload() {
@@ -729,6 +749,17 @@
             
             generateAgain() {
                 console.log('🔄 再次生成');
+                
+                // 如果有预生成的图片，直接使用
+                if (this.preGeneratedImage) {
+                    console.log('⚡ 使用预生成的图片');
+                    this.generatedImage = this.preGeneratedImage;
+                    this.preGeneratedImage = null;
+                    this.showResult();
+                    return;
+                }
+                
+                // 否则正常生成
                 this.startGeneration();
             }
             
@@ -744,6 +775,11 @@
                 this.generatedImage = null;
                 this.isGenerating = false;
                 
+                // 重置预生成状态
+                this.preGeneratedImage = null;
+                this.isPreGenerating = false;
+                this.preGenerationQueue = [];
+                
                 if (this.elements.fileInput) {
                     this.elements.fileInput.value = '';
                 }
@@ -755,7 +791,45 @@
             
             showFeedback(message) {
                 console.log(`💬 ${message}`);
-                alert(message);
+                
+                // 创建更友好的反馈提示
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0,0,0,0.8);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 25px;
+                    font-size: 1.1rem;
+                    z-index: 1000;
+                    animation: fadeInOut 2s ease-in-out;
+                `;
+                feedbackDiv.textContent = message;
+                
+                // 添加动画样式
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeInOut {
+                        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                        20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                        80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                        100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    }
+                `;
+                document.head.appendChild(style);
+                document.body.appendChild(feedbackDiv);
+                
+                setTimeout(() => {
+                    if (feedbackDiv.parentNode) {
+                        feedbackDiv.parentNode.removeChild(feedbackDiv);
+                    }
+                    if (style.parentNode) {
+                        style.parentNode.removeChild(style);
+                    }
+                }, 2000);
             }
             
             showError(message) {
@@ -772,6 +846,53 @@
                         errorDiv.parentNode.removeChild(errorDiv);
                     }
                 }, 5000);
+            }
+            
+            // 预生成机制
+            startPreGeneration() {
+                if (this.isPreGenerating || !this.currentImage) {
+                    return;
+                }
+                
+                console.log('🚀 开始预生成下一张图片');
+                this.isPreGenerating = true;
+                
+                // 延迟2秒开始预生成，给用户时间查看当前图片
+                setTimeout(() => {
+                    this.performPreGeneration();
+                }, 2000);
+            }
+            
+            async performPreGeneration() {
+                try {
+                    console.log('⚡ 执行预生成');
+                    
+                    // 尝试使用真实API
+                    if (window.NanoPhotoAPI && this.currentImage) {
+                        const api = new window.NanoPhotoAPI();
+                        const result = await api.generatePhoto(
+                            this.currentImage, 
+                            '随机风格', 
+                            Math.floor(Math.random() * 17) + 1
+                        );
+                        
+                        if (result.success && result.imageUrl) {
+                            console.log('✅ 预生成成功');
+                            this.preGeneratedImage = result.imageUrl;
+                            this.isPreGenerating = false;
+                            return;
+                        }
+                    }
+                    
+                    // 如果API失败，生成演示图片
+                    console.log('🎭 预生成演示图片');
+                    this.preGeneratedImage = 'https://picsum.photos/280/280?random=' + (Date.now() + 1000);
+                    this.isPreGenerating = false;
+                    
+                } catch (error) {
+                    console.error('❌ 预生成失败:', error);
+                    this.isPreGenerating = false;
+                }
             }
         }
 
