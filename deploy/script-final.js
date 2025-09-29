@@ -315,16 +315,47 @@ class NanoPhotoApp {
         }
     }
     
-    completeGeneration() {
-        console.log('🎉 AI生成完成');
+    async completeGeneration() {
+        console.log('🎉 开始AI生成完成流程');
         
-        this.isGenerating = false;
-        
-        // 使用演示图片（实际应用中这里会是API返回的图片）
-        this.generatedImage = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face';
-        
-        // 显示结果
-        this.showResult();
+        try {
+            // 使用模拟API生成图片
+            if (window.MockNanoPhotoAPI && this.currentImage && this.currentStyle) {
+                console.log('🤖 使用模拟API生成图片...');
+                const mockAPI = new MockNanoPhotoAPI();
+                const result = await mockAPI.generatePhoto(
+                    this.currentImage, 
+                    this.currentStyle.prompt, 
+                    this.currentStyle.id
+                );
+                
+                if (result.success) {
+                    console.log('✅ 模拟API生成成功');
+                    this.generatedImage = result.imageUrl;
+                } else {
+                    console.error('❌ 模拟API生成失败:', result.error);
+                    // 使用备用图片
+                    this.generatedImage = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face';
+                }
+            } else {
+                console.log('📸 使用默认演示图片');
+                // 使用演示图片
+                this.generatedImage = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face';
+            }
+            
+            this.isGenerating = false;
+            
+            // 显示结果
+            this.showResult();
+            
+        } catch (error) {
+            console.error('❌ 生成过程出错:', error);
+            this.isGenerating = false;
+            
+            // 使用备用图片
+            this.generatedImage = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face';
+            this.showResult();
+        }
     }
     
     showResult() {
