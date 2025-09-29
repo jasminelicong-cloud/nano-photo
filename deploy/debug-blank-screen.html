@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空白屏幕调试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error { color: #dc3545; }
+        .success { color: #28a745; }
+        .info { color: #17a2b8; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 空白屏幕调试工具</h1>
+        
+        <div>
+            <button onclick="checkAllElements()">检查所有元素</button>
+            <button onclick="checkEventListeners()">检查事件监听器</button>
+            <button onclick="simulateImageLoad()">模拟图片加载</button>
+            <button onclick="clearLog()">清空日志</button>
+        </div>
+        
+        <div id="debug-log" class="log">等待调试...</div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            logElement.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('debug-log').innerHTML = '';
+        }
+
+        function checkAllElements() {
+            log('🔍 开始检查所有DOM元素...', 'info');
+            
+            const requiredElements = [
+                'uploadScreen',
+                'generatingScreen', 
+                'resultScreen',
+                'actionScreen',
+                'cardBack',
+                'cardFront',
+                'generatedImg',
+                'likeBtn',
+                'dislikeBtn',
+                'downloadBtn',
+                'againBtn',
+                'backBtn'
+            ];
+
+            let missingElements = [];
+            let foundElements = [];
+
+            requiredElements.forEach(id => {
+                const element = document.getElementById(id) || document.querySelector(`.${id}`);
+                if (element) {
+                    foundElements.push(id);
+                    log(`✅ 找到元素: ${id}`, 'success');
+                } else {
+                    missingElements.push(id);
+                    log(`❌ 缺失元素: ${id}`, 'error');
+                }
+            });
+
+            log(`\n📊 总结: 找到 ${foundElements.length} 个元素，缺失 ${missingElements.length} 个元素`, 'info');
+            
+            if (missingElements.length > 0) {
+                log(`❌ 缺失的元素可能导致界面空白: ${missingElements.join(', ')}`, 'error');
+            }
+        }
+
+        function checkEventListeners() {
+            log('🎯 检查事件监听器...', 'info');
+            
+            // 检查是否有全局错误
+            window.addEventListener('error', function(e) {
+                log(`❌ JavaScript错误: ${e.message} 在 ${e.filename}:${e.lineno}`, 'error');
+            });
+
+            // 检查未处理的Promise拒绝
+            window.addEventListener('unhandledrejection', function(e) {
+                log(`❌ 未处理的Promise拒绝: ${e.reason}`, 'error');
+            });
+
+            log('✅ 错误监听器已设置', 'success');
+        }
+
+        function simulateImageLoad() {
+            log('🖼️ 模拟图片加载流程...', 'info');
+            
+            // 模拟显示图片后的状态变化
+            setTimeout(() => {
+                log('📸 模拟图片显示...', 'info');
+                
+                // 检查是否有隐藏所有屏幕的代码
+                const screens = ['uploadScreen', 'generatingScreen', 'resultScreen', 'actionScreen'];
+                screens.forEach(screenId => {
+                    const screen = document.getElementById(screenId);
+                    if (screen) {
+                        const style = window.getComputedStyle(screen);
+                        log(`📺 ${screenId} 显示状态: display=${style.display}, visibility=${style.visibility}`, 'info');
+                    }
+                });
+                
+                // 检查body和html的状态
+                const bodyStyle = window.getComputedStyle(document.body);
+                const htmlStyle = window.getComputedStyle(document.documentElement);
+                log(`🏠 Body 状态: display=${bodyStyle.display}, visibility=${bodyStyle.visibility}`, 'info');
+                log(`📄 HTML 状态: display=${htmlStyle.display}, visibility=${htmlStyle.visibility}`, 'info');
+                
+            }, 1000);
+        }
+
+        // 自动开始检查
+        window.addEventListener('load', () => {
+            log('🚀 页面加载完成，开始自动检查...', 'info');
+            checkAllElements();
+            checkEventListeners();
+        });
+
+        // 监控DOM变化
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    log(`🔄 DOM变化: ${mutation.target.tagName} 添加了 ${mutation.addedNodes.length} 个节点，移除了 ${mutation.removedNodes.length} 个节点`, 'info');
+                }
+                if (mutation.type === 'attributes') {
+                    log(`🎨 属性变化: ${mutation.target.tagName}.${mutation.attributeName} = ${mutation.target.getAttribute(mutation.attributeName)}`, 'info');
+                }
+            });
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeOldValue: true
+        });
+    </script>
+</body>
+</html>
