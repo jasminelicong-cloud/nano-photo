@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API调试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .log-area {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 Nano Photo API 调试工具</h1>
+        
+        <div class="status info">
+            <strong>当前状态：</strong> 准备测试API连接
+        </div>
+        
+        <div>
+            <button onclick="testAPIConnection()">测试API连接</button>
+            <button onclick="testImageUpload()">测试图片上传</button>
+            <button onclick="clearLog()">清空日志</button>
+        </div>
+        
+        <h3>📋 调试日志</h3>
+        <div id="logArea" class="log-area">
+            [系统] 调试工具已加载，等待测试...\n
+        </div>
+        
+        <h3>📊 API配置信息</h3>
+        <div id="configInfo"></div>
+        
+        <input type="file" id="testFile" accept="image/*" style="display: none;">
+    </div>
+
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <script>
+        let logArea = document.getElementById('logArea');
+        let configInfo = document.getElementById('configInfo');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#00ff00';
+            logArea.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+        
+        function clearLog() {
+            logArea.innerHTML = '[系统] 日志已清空\n';
+        }
+        
+        // 显示配置信息
+        function showConfig() {
+            if (window.NANO_CONFIG) {
+                configInfo.innerHTML = `
+                    <div class="status success">
+                        <strong>✅ 配置加载成功</strong><br>
+                        API地址: ${window.NANO_CONFIG.API_BASE_URL}<br>
+                        API密钥: ${window.NANO_CONFIG.API_KEY ? window.NANO_CONFIG.API_KEY.substring(0, 10) + '...' : '未配置'}<br>
+                        应用名称: ${window.NANO_CONFIG.APP_NAME}<br>
+                        支持格式: ${window.NANO_CONFIG.SUPPORTED_FORMATS.join(', ')}
+                    </div>
+                `;
+            } else {
+                configInfo.innerHTML = `
+                    <div class="status error">
+                        <strong>❌ 配置加载失败</strong><br>
+                        请检查 config.js 文件是否正确加载
+                    </div>
+                `;
+            }
+        }
+        
+        // 测试API连接
+        async function testAPIConnection() {
+            log('开始测试API连接...', 'info');
+            
+            try {
+                if (!window.NANO_CONFIG) {
+                    throw new Error('配置文件未加载');
+                }
+                
+                log(`API地址: ${window.NANO_CONFIG.API_BASE_URL}`, 'info');
+                log(`API密钥: ${window.NANO_CONFIG.API_KEY.substring(0, 10)}...`, 'info');
+                
+                // 测试基本连接
+                const response = await fetch(window.NANO_CONFIG.API_BASE_URL + '/health', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${window.NANO_CONFIG.API_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log(`HTTP状态码: ${response.status}`, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`API响应: ${JSON.stringify(data)}`, 'success');
+                } else {
+                    const errorText = await response.text();
+                    log(`API错误: ${errorText}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`连接错误: ${error.message}`, 'error');
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        // 测试图片上传
+        function testImageUpload() {
+            document.getElementById('testFile').click();
+        }
+        
+        document.getElementById('testFile').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            log(`开始测试图片上传: ${file.name} (${(file.size/1024/1024).toFixed(2)}MB)`, 'info');
+            
+            try {
+                // 创建API实例
+                const api = new NanoPhotoAPI();
+                
+                // 转换文件为base64
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    const base64Data = event.target.result;
+                    log('图片转换为base64完成', 'success');
+                    
+                    try {
+                        // 随机选择一个风格
+                        const styles = window.NANO_CONFIG.PHOTO_STYLES;
+                        const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+                        
+                        log(`选择风格: ${randomStyle.name}`, 'info');
+                        log('开始调用API生成图片...', 'info');
+                        
+                        const result = await api.generatePhoto(base64Data, randomStyle.prompt, randomStyle.id);
+                        
+                        if (result.success) {
+                            log('✅ 图片生成成功!', 'success');
+                            log(`生成的图片URL: ${result.imageUrl}`, 'success');
+                            
+                            // 显示生成的图片
+                            const img = document.createElement('img');
+                            img.src = result.imageUrl;
+                            img.style.maxWidth = '300px';
+                            img.style.border = '2px solid #28a745';
+                            img.style.borderRadius = '10px';
+                            img.style.margin = '10px 0';
+                            
+                            img.onload = () => log('图片加载成功', 'success');
+                            img.onerror = () => log('图片加载失败', 'error');
+                            
+                            configInfo.appendChild(img);
+                            
+                        } else {
+                            log(`❌ 图片生成失败: ${result.error}`, 'error');
+                        }
+                        
+                    } catch (apiError) {
+                        log(`API调用错误: ${apiError.message}`, 'error');
+                        log(`错误详情: ${apiError.stack}`, 'error');
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+                
+            } catch (error) {
+                log(`文件处理错误: ${error.message}`, 'error');
+            }
+        });
+        
+        // 页面加载时显示配置
+        window.addEventListener('load', () => {
+            log('调试工具初始化完成', 'success');
+            showConfig();
+        });
+        
+        // 捕获所有错误
+        window.addEventListener('error', (e) => {
+            log(`全局错误: ${e.error.message}`, 'error');
+        });
+        
+        // 捕获Promise错误
+        window.addEventListener('unhandledrejection', (e) => {
+            log(`Promise错误: ${e.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>
