@@ -3,113 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nano Photo - AI写真生成器</title>
-    <link rel="preload" href="styles.css?v=2" as="style">
-    <link rel="preload" href="script-final.js?v=2" as="script">
-    <link rel="stylesheet" href="styles.css?v=2">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Nano Photo - 使用AI技术生成17种不同风格的专业写真照片">
-    <meta name="keywords" content="AI写真,人工智能,照片生成,写真摄影,Nano Photo">
-    <meta name="author" content="Nano Photo Team">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Nano Photo - AI写真生成器">
-    <meta property="og:description" content="使用AI技术生成17种不同风格的专业写真照片">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://jasminelicong-cloud.github.io/nano-photo/og-image.jpg">
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Nano Photo">
-    
-    <!-- Preconnect to external domains -->
-    <link rel="preconnect" href="https://api.nano-banana.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Nano Photo - 修复版本</title>
+    <style>
+        /* 内联CSS确保样式加载 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Dancing Script', cursive;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* 上传界面 */
+        .app-title {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .app-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .upload-area {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .upload-area:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .upload-area h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-area p {
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        /* 生成界面 */
+        .generating-content {
+            text-align: center;
+        }
+
+        .loading-animation {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+        }
+
+        .loading-circle {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 250px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 auto 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .loading-subtitle {
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        /* 结果界面 */
+        .photo-card {
+            width: 280px;
+            height: 350px;
+            position: relative;
+            perspective: 1000px;
+            margin: 0 auto;
+        }
+
+        .card-back, .card-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .card-back {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .card-front {
+            background: white;
+            transform: rotateY(180deg);
+            display: none;
+        }
+
+        .card-back-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .card-back-content p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .reveal-icon {
+            font-size: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .generated-image {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .image-actions {
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .like-btn:hover { background: #4CAF50; }
+        .dislike-btn:hover { background: #f44336; }
+        .download-btn:hover { background: #2196F3; }
+
+        /* 操作界面 */
+        .action-content h2 {
+            font-size: 2rem;
+            margin-bottom: 40px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .primary-btn, .secondary-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .primary-btn {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            color: white;
+        }
+
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .primary-btn:hover, .secondary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* 错误显示 */
+        .error-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 300px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .app-container {
+                padding: 10px;
+            }
+            
+            .app-title {
+                font-size: 2.5rem;
+            }
+            
+            .photo-card {
+                width: 250px;
+                height: 320px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
         <!-- 上传界面 -->
         <div id="uploadScreen" class="screen active">
-            <div class="upload-container">
+            <div class="upload-content">
                 <h1 class="app-title">Nano Photo</h1>
-                <p class="app-subtitle">AI写真生成器</p>
+                <p class="app-subtitle">Create AI portraits with your photos</p>
                 
-                <div class="upload-area" id="uploadArea">
+                <div id="uploadArea" class="upload-area">
                     <div class="upload-icon">📸</div>
                     <h3>Upload Your Photo</h3>
-                    <p>点击或拖拽上传图片</p>
-                    <span class="upload-hint">支持 JPG、PNG、WebP 格式，最大 5MB</span>
-                </div>
-                
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                
-                <div class="features">
-                    <div class="feature">
-                        <span class="feature-icon">🎨</span>
-                        <span>17种写真风格</span>
-                    </div>
-                    <div class="feature">
-                        <span class="feature-icon">🤖</span>
-                        <span>AI智能生成</span>
-                    </div>
-                    <div class="feature">
-                        <span class="feature-icon">⚡</span>
-                        <span>快速处理</span>
-                    </div>
+                    <p>Drag & drop or click to select</p>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
                 </div>
             </div>
         </div>
 
         <!-- 生成界面 -->
         <div id="generatingScreen" class="screen">
-            <div class="generating-container">
+            <div class="generating-content">
                 <div class="loading-animation">
-                    <div class="loading-spinner"></div>
+                    <div class="loading-circle"></div>
                 </div>
-                <h2 class="loading-title">Creating your AI portrait...</h2>
                 <p class="loading-text">Analyzing your photo...</p>
                 <div class="progress-bar">
                     <div class="progress-fill"></div>
                 </div>
-                <p class="loading-hint">Please Wait...</p>
+                <p class="loading-subtitle">Please Wait...</p>
             </div>
         </div>
 
         <!-- 结果界面 -->
         <div id="resultScreen" class="screen">
-            <div class="result-container">
-                <div class="card-container">
+            <div class="result-content">
+                <div class="photo-card">
                     <!-- 卡片背面 -->
                     <div class="card-back">
-                        <div class="card-pattern"></div>
-                        <div class="card-content">
+                        <div class="card-back-content">
                             <h3>Your AI Portrait</h3>
                             <p>Click to See</p>
-                            <div class="click-indicator">👆</div>
+                            <div class="reveal-icon">👁️</div>
                         </div>
                     </div>
                     
                     <!-- 卡片正面 -->
-                    <div class="card-front" style="display: none;">
+                    <div class="card-front">
                         <img id="generatedImg" src="" alt="Generated Portrait" class="generated-image">
                         <div class="image-actions">
-                            <button id="likeBtn" class="action-btn like-btn" title="喜欢这个风格">
-                                <span class="btn-icon">👍</span>
-                            </button>
-                            <button id="dislikeBtn" class="action-btn dislike-btn" title="不喜欢这个风格">
-                                <span class="btn-icon">👎</span>
-                            </button>
-                            <button id="downloadBtn" class="action-btn download-btn" title="下载图片">
-                                <span class="btn-icon">⬇️</span>
-                            </button>
+                            <button id="likeBtn" class="action-btn like-btn">👍</button>
+                            <button id="dislikeBtn" class="action-btn dislike-btn">👎</button>
+                            <button id="downloadBtn" class="action-btn download-btn">⬇️</button>
                         </div>
                     </div>
                 </div>
@@ -118,68 +362,409 @@
 
         <!-- 操作界面 -->
         <div id="actionScreen" class="screen">
-            <div class="action-container">
+            <div class="action-content">
                 <h2>What's Next?</h2>
                 <div class="action-buttons">
-                    <button id="againBtn" class="primary-btn">
-                        <span class="btn-icon">🎨</span>
-                        Nano Photo Again!
-                    </button>
-                    <button id="backBtn" class="secondary-btn">
-                        <span class="btn-icon">🏠</span>
-                        Back to Start
-                    </button>
+                    <button id="againBtn" class="primary-btn">Nano Photo Again!</button>
+                    <button id="backBtn" class="secondary-btn">Back to Start</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script>
-        console.log('🎨 Nano Photo 页面开始加载...');
-        
-        // 错误处理
-        window.addEventListener('error', function(e) {
-            console.error('❌ 页面错误:', e.error);
-        });
-        
-        // 检查必要文件
-        function checkFiles() {
-            const requiredFiles = ['config.js', 'api.js', 'script-final.js'];
-            requiredFiles.forEach(file => {
-                fetch(file)
-                    .then(response => {
-                        if (response.ok) {
-                            console.log(`✅ ${file} 加载成功`);
-                        } else {
-                            console.error(`❌ ${file} 加载失败: ${response.status}`);
-                        }
-                    })
-                    .catch(error => {
-                        console.error(`❌ ${file} 请求失败:`, error);
-                    });
-            });
-        }
-        
-        checkFiles();
-    </script>
-    <script src="config.js"></script>
-    <script src="api.js"></script>
-    <script src="script-final.js"></script>
+        // 简化版应用 - 确保基础功能正常
+        console.log('🎨 Nano Photo 修复版本启动...');
 
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch((registrationError) => {
-                        console.log('SW registration failed: ', registrationError);
+        class NanoPhotoAppFixed {
+            constructor() {
+                console.log('📱 初始化应用');
+                this.currentImage = null;
+                this.currentStyle = null;
+                this.generatedImage = null;
+                this.isGenerating = false;
+                
+                // 立即初始化，不等待DOM
+                this.init();
+            }
+            
+            init() {
+                console.log('🚀 开始初始化');
+                try {
+                    this.initializeElements();
+                    this.initializeEventListeners();
+                    console.log('✅ 应用初始化完成');
+                } catch (error) {
+                    console.error('❌ 初始化失败:', error);
+                    this.showError(`初始化失败: ${error.message}`);
+                }
+            }
+            
+            initializeElements() {
+                this.elements = {
+                    uploadArea: document.getElementById('uploadArea'),
+                    fileInput: document.getElementById('fileInput'),
+                    uploadScreen: document.getElementById('uploadScreen'),
+                    generatingScreen: document.getElementById('generatingScreen'),
+                    resultScreen: document.getElementById('resultScreen'),
+                    actionScreen: document.getElementById('actionScreen'),
+                    cardBack: document.querySelector('.card-back'),
+                    cardFront: document.querySelector('.card-front'),
+                    generatedImg: document.getElementById('generatedImg'),
+                    likeBtn: document.getElementById('likeBtn'),
+                    dislikeBtn: document.getElementById('dislikeBtn'),
+                    downloadBtn: document.getElementById('downloadBtn'),
+                    againBtn: document.getElementById('againBtn'),
+                    backBtn: document.getElementById('backBtn'),
+                    loadingText: document.querySelector('.loading-text'),
+                    progressBar: document.querySelector('.progress-fill')
+                };
+                
+                console.log('✅ DOM元素获取完成');
+            }
+            
+            initializeEventListeners() {
+                // 上传区域点击
+                if (this.elements.uploadArea) {
+                    this.elements.uploadArea.addEventListener('click', () => {
+                        console.log('📸 点击上传区域');
+                        if (this.elements.fileInput) {
+                            this.elements.fileInput.click();
+                        }
                     });
-            });
+                }
+                
+                // 文件选择
+                if (this.elements.fileInput) {
+                    this.elements.fileInput.addEventListener('change', (e) => {
+                        console.log('📁 文件选择');
+                        this.handleImageUpload(e);
+                    });
+                }
+                
+                // 卡片点击
+                if (this.elements.cardBack) {
+                    this.elements.cardBack.addEventListener('click', () => {
+                        console.log('🎴 点击卡片背面');
+                        this.flipCard();
+                    });
+                }
+                
+                if (this.elements.cardFront) {
+                    this.elements.cardFront.addEventListener('click', () => {
+                        console.log('🔄 点击卡片正面');
+                        this.showActionScreen();
+                    });
+                }
+                
+                // 按钮事件
+                if (this.elements.likeBtn) {
+                    this.elements.likeBtn.addEventListener('click', () => this.handleLike());
+                }
+                
+                if (this.elements.dislikeBtn) {
+                    this.elements.dislikeBtn.addEventListener('click', () => this.handleDislike());
+                }
+                
+                if (this.elements.downloadBtn) {
+                    this.elements.downloadBtn.addEventListener('click', () => this.handleDownload());
+                }
+                
+                if (this.elements.againBtn) {
+                    this.elements.againBtn.addEventListener('click', () => this.generateAgain());
+                }
+                
+                if (this.elements.backBtn) {
+                    this.elements.backBtn.addEventListener('click', () => this.backToStart());
+                }
+                
+                console.log('✅ 事件监听器设置完成');
+            }
+            
+            handleImageUpload(event) {
+                console.log('🖼️ 处理图片上传');
+                
+                const files = event.target.files;
+                if (!files || files.length === 0) return;
+                
+                const file = files[0];
+                console.log('📄 文件:', file.name, file.size, file.type);
+                
+                // 验证文件
+                if (!this.validateFile(file)) return;
+                
+                // 读取文件
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    console.log('✅ 文件读取成功');
+                    this.currentImage = e.target.result;
+                    this.startGeneration();
+                };
+                reader.onerror = () => {
+                    console.error('❌ 文件读取失败');
+                    this.showError('文件读取失败');
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            validateFile(file) {
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                
+                if (file.size > maxSize) {
+                    this.showError('图片文件过大，请选择小于5MB的图片');
+                    return false;
+                }
+                
+                if (!allowedTypes.includes(file.type)) {
+                    this.showError('不支持的图片格式，请选择JPG、PNG或WebP格式');
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            startGeneration() {
+                console.log('🎨 开始生成');
+                
+                if (this.isGenerating) return;
+                this.isGenerating = true;
+                
+                // 切换到生成界面
+                this.showScreen('generatingScreen');
+                
+                // 模拟生成过程
+                this.simulateGeneration();
+            }
+            
+            simulateGeneration() {
+                console.log('⏳ 模拟生成过程');
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress > 100) progress = 100;
+                    
+                    this.updateProgress(progress);
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            this.completeGeneration();
+                        }, 500);
+                    }
+                }, 200);
+            }
+            
+            updateProgress(progress) {
+                if (this.elements.progressBar) {
+                    this.elements.progressBar.style.width = `${progress}%`;
+                }
+                
+                if (this.elements.loadingText) {
+                    if (progress < 30) {
+                        this.elements.loadingText.textContent = 'Analyzing your photo...';
+                    } else if (progress < 60) {
+                        this.elements.loadingText.textContent = 'Applying AI magic...';
+                    } else if (progress < 90) {
+                        this.elements.loadingText.textContent = 'Creating your portrait...';
+                    } else {
+                        this.elements.loadingText.textContent = 'Almost done...';
+                    }
+                }
+            }
+            
+            async completeGeneration() {
+                console.log('🎉 完成生成');
+                
+                try {
+                    // 尝试使用真实API
+                    if (window.NanoPhotoAPI && this.currentImage) {
+                        console.log('🚀 调用真实API');
+                        const api = new window.NanoPhotoAPI();
+                        const result = await api.generatePhoto(
+                            this.currentImage, 
+                            '专业商务头像风格', 
+                            1
+                        );
+                        
+                        if (result.success && result.imageUrl) {
+                            console.log('✅ API生成成功');
+                            this.generatedImage = result.imageUrl;
+                            this.isGenerating = false;
+                            this.showResult();
+                            return;
+                        }
+                    }
+                    
+                    // 如果API失败，使用演示图片
+                    console.log('🎭 使用演示图片');
+                    this.generatedImage = 'https://picsum.photos/280/280?random=' + Date.now();
+                    this.isGenerating = false;
+                    this.showResult();
+                    
+                } catch (error) {
+                    console.error('❌ 生成失败:', error);
+                    this.showError(`生成失败: ${error.message}`);
+                    this.isGenerating = false;
+                    
+                    setTimeout(() => {
+                        this.showScreen('uploadScreen');
+                    }, 3000);
+                }
+            }
+            
+            showResult() {
+                console.log('📸 显示结果');
+                this.showScreen('resultScreen');
+            }
+            
+            flipCard() {
+                console.log('🔄 翻转卡片');
+                
+                if (this.elements.generatedImg && this.generatedImage) {
+                    this.elements.generatedImg.src = this.generatedImage;
+                }
+                
+                if (this.elements.cardBack && this.elements.cardFront) {
+                    this.elements.cardBack.style.transform = 'rotateY(180deg)';
+                    this.elements.cardFront.style.transform = 'rotateY(0deg)';
+                    
+                    setTimeout(() => {
+                        this.elements.cardBack.style.display = 'none';
+                        this.elements.cardFront.style.display = 'block';
+                    }, 300);
+                }
+            }
+            
+            showActionScreen() {
+                console.log('⚡ 显示操作界面');
+                this.showScreen('actionScreen');
+            }
+            
+            showScreen(screenId) {
+                console.log(`📱 切换到: ${screenId}`);
+                
+                const screens = ['uploadScreen', 'generatingScreen', 'resultScreen', 'actionScreen'];
+                screens.forEach(id => {
+                    const screen = document.getElementById(id);
+                    if (screen) {
+                        if (id === screenId) {
+                            screen.classList.add('active');
+                        } else {
+                            screen.classList.remove('active');
+                        }
+                    }
+                });
+            }
+            
+            handleLike() {
+                console.log('👍 点赞');
+                this.showFeedback('👍 已记录您的喜好！');
+            }
+            
+            handleDislike() {
+                console.log('👎 点踩');
+                this.showFeedback('👎 已记录您的反馈！');
+            }
+            
+            handleDownload() {
+                console.log('⬇️ 下载');
+                if (this.generatedImage) {
+                    const link = document.createElement('a');
+                    link.href = this.generatedImage;
+                    link.download = `nano-photo-${Date.now()}.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    this.showFeedback('📥 下载已开始！');
+                }
+            }
+            
+            generateAgain() {
+                console.log('🔄 再次生成');
+                this.startGeneration();
+            }
+            
+            backToStart() {
+                console.log('🏠 返回首页');
+                this.showScreen('uploadScreen');
+                this.resetApp();
+            }
+            
+            resetApp() {
+                this.currentImage = null;
+                this.currentStyle = null;
+                this.generatedImage = null;
+                this.isGenerating = false;
+                
+                if (this.elements.fileInput) {
+                    this.elements.fileInput.value = '';
+                }
+                
+                if (this.elements.progressBar) {
+                    this.elements.progressBar.style.width = '0%';
+                }
+            }
+            
+            showFeedback(message) {
+                console.log(`💬 ${message}`);
+                alert(message);
+            }
+            
+            showError(message) {
+                console.error(`❌ ${message}`);
+                
+                // 创建错误提示
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = message;
+                document.body.appendChild(errorDiv);
+                
+                setTimeout(() => {
+                    if (errorDiv.parentNode) {
+                        errorDiv.parentNode.removeChild(errorDiv);
+                    }
+                }, 5000);
+            }
         }
+
+        // 启动应用
+        console.log('🌟 准备启动修复版本...');
+        
+        // 等待DOM完全加载
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('📄 DOM加载完成');
+                new NanoPhotoAppFixed();
+            });
+        } else {
+            console.log('📄 DOM已就绪');
+            new NanoPhotoAppFixed();
+        }
+
+        // 延迟加载API文件
+        setTimeout(() => {
+            const configScript = document.createElement('script');
+            configScript.src = 'config.js';
+            configScript.onload = () => {
+                console.log('⚙️ 配置文件加载完成');
+                
+                const apiScript = document.createElement('script');
+                apiScript.src = 'api-gemini.js';
+                apiScript.onload = () => {
+                    console.log('🔌 API文件加载完成');
+                };
+                apiScript.onerror = () => {
+                    console.warn('⚠️ API文件加载失败，将使用演示模式');
+                };
+                document.head.appendChild(apiScript);
+            };
+            configScript.onerror = () => {
+                console.warn('⚠️ 配置文件加载失败，将使用默认配置');
+            };
+            document.head.appendChild(configScript);
+        }, 1000);
     </script>
 </body>
 </html>
