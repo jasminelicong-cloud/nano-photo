@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>真实API调试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .log-area {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            height: 400px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .image-preview {
+            max-width: 300px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 真实API调试工具</h1>
+        
+        <div class="status info">
+            <strong>当前API配置：</strong><br>
+            Base URL: https://api.tu-zi.com/v1<br>
+            API Key: sk-3RNycSK4jptF86qmwtFAzYNiNAKEt0i1xNZZEufKs6OmU0Mm
+        </div>
+        
+        <div>
+            <button onclick="testRealAPI()">测试真实API连接</button>
+            <button onclick="testImageGeneration()">测试图片生成</button>
+            <button onclick="clearLog()">清空日志</button>
+        </div>
+        
+        <h3>📋 调试日志</h3>
+        <div id="logArea" class="log-area">
+            [系统] 真实API调试工具已加载...\n
+        </div>
+        
+        <h3>📸 测试图片上传</h3>
+        <input type="file" id="testFile" accept="image/*">
+        <div id="imagePreview"></div>
+        
+        <input type="file" id="testFile" accept="image/*" style="display: none;">
+    </div>
+
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <script>
+        let logArea = document.getElementById('logArea');
+        let imagePreview = document.getElementById('imagePreview');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#00ff00';
+            logArea.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+        
+        function clearLog() {
+            logArea.innerHTML = '[系统] 日志已清空\n';
+        }
+        
+        // 测试真实API连接
+        async function testRealAPI() {
+            log('🚀 开始测试真实API连接...', 'info');
+            
+            try {
+                const apiUrl = 'https://api.tu-zi.com/v1';
+                const apiKey = 'sk-3RNycSK4jptF86qmwtFAzYNiNAKEt0i1xNZZEufKs6OmU0Mm';
+                
+                log(`API地址: ${apiUrl}`, 'info');
+                log(`API密钥: ${apiKey.substring(0, 10)}...`, 'info');
+                
+                // 测试健康检查端点
+                const healthResponse = await fetch(`${apiUrl}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log(`健康检查状态码: ${healthResponse.status}`, healthResponse.ok ? 'success' : 'error');
+                
+                if (healthResponse.ok) {
+                    const healthData = await healthResponse.text();
+                    log(`健康检查响应: ${healthData}`, 'success');
+                } else {
+                    const errorText = await healthResponse.text();
+                    log(`健康检查错误: ${errorText}`, 'error');
+                }
+                
+                // 测试模型列表端点
+                log('测试模型列表端点...', 'info');
+                const modelsResponse = await fetch(`${apiUrl}/models`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log(`模型列表状态码: ${modelsResponse.status}`, modelsResponse.ok ? 'success' : 'error');
+                
+                if (modelsResponse.ok) {
+                    const modelsData = await modelsResponse.json();
+                    log(`可用模型: ${JSON.stringify(modelsData, null, 2)}`, 'success');
+                } else {
+                    const errorText = await modelsResponse.text();
+                    log(`模型列表错误: ${errorText}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`连接错误: ${error.message}`, 'error');
+                log(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        // 测试图片生成
+        function testImageGeneration() {
+            document.getElementById('testFile').click();
+        }
+        
+        document.getElementById('testFile').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            log(`开始测试真实图片生成: ${file.name} (${(file.size/1024/1024).toFixed(2)}MB)`, 'info');
+            
+            // 显示原图预览
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                img.className = 'image-preview';
+                img.style.maxWidth = '200px';
+                imagePreview.innerHTML = '<h4>原图:</h4>';
+                imagePreview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+            
+            try {
+                // 创建真实API实例
+                const api = new NanoPhotoAPI();
+                
+                // 转换文件为base64
+                const fileReader = new FileReader();
+                fileReader.onload = async function(event) {
+                    const base64Data = event.target.result;
+                    log('图片转换为base64完成', 'success');
+                    
+                    try {
+                        // 使用第一个风格进行测试
+                        const testPrompt = "将上传的人像转换为美式风格的专业 headshot（企业高管摄影风格），需保留原照片人物的面部特征和身份。要求：半身像，蓝色纹理背景，自然柔和的棚拍打光，高清清晰，肤色真实自然，画面简洁优雅。";
+                        
+                        log('开始调用真实API生成图片...', 'info');
+                        log(`使用提示词: ${testPrompt.substring(0, 50)}...`, 'info');
+                        
+                        const result = await api.generatePhoto(base64Data, testPrompt, 1);
+                        
+                        if (result.success) {
+                            log('✅ 真实API生成成功!', 'success');
+                            log(`生成的图片URL: ${result.imageUrl}`, 'success');
+                            log(`处理时间: ${result.processingTime || 'N/A'}ms`, 'info');
+                            
+                            // 显示生成的图片
+                            const generatedImg = document.createElement('img');
+                            generatedImg.src = result.imageUrl;
+                            generatedImg.className = 'image-preview';
+                            generatedImg.style.maxWidth = '200px';
+                            generatedImg.style.border = '2px solid #28a745';
+                            
+                            const generatedDiv = document.createElement('div');
+                            generatedDiv.innerHTML = '<h4>生成结果:</h4>';
+                            generatedDiv.appendChild(generatedImg);
+                            imagePreview.appendChild(generatedDiv);
+                            
+                            generatedImg.onload = () => log('生成图片加载成功', 'success');
+                            generatedImg.onerror = () => log('生成图片加载失败', 'error');
+                            
+                        } else {
+                            log(`❌ 真实API生成失败: ${result.error}`, 'error');
+                            log(`错误代码: ${result.code || 'N/A'}`, 'error');
+                        }
+                        
+                    } catch (apiError) {
+                        log(`API调用错误: ${apiError.message}`, 'error');
+                        log(`错误详情: ${apiError.stack}`, 'error');
+                    }
+                };
+                
+                fileReader.readAsDataURL(file);
+                
+            } catch (error) {
+                log(`文件处理错误: ${error.message}`, 'error');
+            }
+        });
+        
+        // 页面加载时的初始化
+        window.addEventListener('load', () => {
+            log('真实API调试工具初始化完成', 'success');
+        });
+        
+        // 捕获所有错误
+        window.addEventListener('error', (e) => {
+            log(`全局错误: ${e.error.message}`, 'error');
+        });
+        
+        // 捕获Promise错误
+        window.addEventListener('unhandledrejection', (e) => {
+            log(`Promise错误: ${e.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>

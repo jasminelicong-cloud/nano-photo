@@ -319,9 +319,12 @@ class NanoPhotoApp {
         console.log('🎉 开始AI生成完成流程');
         
         try {
-            // 优先使用真实API
-            if (window.NanoPhotoAPI && this.currentImage && this.currentStyle) {
-                console.log('🚀 使用真实API生成图片...');
+            // 强制使用真实API - 不再使用模拟API
+            if (this.currentImage && this.currentStyle) {
+                console.log('🚀 调用真实API生成个性化写真...');
+                console.log('📸 原图数据长度:', this.currentImage.length);
+                console.log('🎭 选择的风格:', this.currentStyle.name);
+                
                 const realAPI = new NanoPhotoAPI();
                 const result = await realAPI.generatePhoto(
                     this.currentImage, 
@@ -329,53 +332,33 @@ class NanoPhotoApp {
                     this.currentStyle.id
                 );
                 
-                if (result.success) {
-                    console.log('✅ 真实API生成成功');
+                if (result.success && result.imageUrl) {
+                    console.log('✅ 真实API生成成功！');
+                    console.log('🖼️ 生成的图片URL:', result.imageUrl);
                     this.generatedImage = result.imageUrl;
                     this.isGenerating = false;
                     this.showResult();
                     return;
                 } else {
                     console.error('❌ 真实API生成失败:', result.error);
-                }
-            }
-            
-            // 备用：使用模拟API
-            if (window.MockNanoPhotoAPI && this.currentImage && this.currentStyle) {
-                console.log('🤖 使用模拟API作为备用...');
-                const mockAPI = new MockNanoPhotoAPI();
-                const result = await mockAPI.generatePhoto(
-                    this.currentImage, 
-                    this.currentStyle.prompt, 
-                    this.currentStyle.id
-                );
-                
-                if (result.success) {
-                    console.log('✅ 模拟API生成成功');
-                    this.generatedImage = result.imageUrl;
-                } else {
-                    console.error('❌ 模拟API生成失败:', result.error);
-                    // 使用备用图片
-                    this.generatedImage = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face';
+                    throw new Error(`API生成失败: ${result.error}`);
                 }
             } else {
-                console.log('📸 使用默认演示图片');
-                // 使用演示图片
-                this.generatedImage = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face';
+                throw new Error('缺少必要的图片或风格数据');
             }
-            
-            this.isGenerating = false;
-            
-            // 显示结果
-            this.showResult();
             
         } catch (error) {
             console.error('❌ 生成过程出错:', error);
             this.isGenerating = false;
             
-            // 使用备用图片
-            this.generatedImage = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face';
-            this.showResult();
+            // 显示错误信息给用户
+            this.showError(`生成失败: ${error.message}`);
+            
+            // 返回到上传界面
+            setTimeout(() => {
+                this.showScreen('uploadScreen');
+                this.resetApp();
+            }, 3000);
         }
     }
     
@@ -471,6 +454,22 @@ class NanoPhotoApp {
         console.log(`💬 反馈: ${message}`);
         // 这里可以添加toast提示
         alert(message);
+    }
+    
+    showError(message) {
+        console.error(`❌ 错误: ${message}`);
+        
+        // 更新加载界面显示错误
+        if (this.elements.loadingText) {
+            this.elements.loadingText.textContent = message;
+            this.elements.loadingText.style.color = '#ff4444';
+        }
+        
+        // 停止进度条
+        if (this.elements.progressBar) {
+            this.elements.progressBar.style.width = '100%';
+            this.elements.progressBar.style.background = '#ff4444';
+        }
     }
     
     updateStylePreference(styleId, change) {
