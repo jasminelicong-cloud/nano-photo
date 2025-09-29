@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Photo 上传测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 20px;
+            margin: 30px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+            transform: translateY(-2px);
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+        }
+        
+        .upload-icon {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            font-size: 0.9em;
+            color: #999;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .preview {
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .file-info {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .test-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #dee2e6;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Nano Photo 上传测试</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">点击或拖拽上传图片</div>
+            <div class="upload-hint">支持 JPG、PNG、WebP 格式，最大 5MB</div>
+        </div>
+        
+        <input type="file" id="fileInput" accept="image/*" multiple>
+        
+        <div id="status"></div>
+        <div id="preview"></div>
+        
+        <div class="test-buttons">
+            <a href="index.html" class="btn btn-primary">返回主应用</a>
+            <a href="debug.html" class="btn btn-secondary">调试模式</a>
+            <button class="btn btn-secondary" onclick="clearTest()">清除测试</button>
+        </div>
+    </div>
+
+    <script>
+        console.log('🎨 Nano Photo 上传测试页面加载完成');
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        const preview = document.getElementById('preview');
+        
+        // 点击上传区域
+        uploadArea.addEventListener('click', () => {
+            console.log('📸 点击上传区域');
+            fileInput.click();
+        });
+        
+        // 文件选择
+        fileInput.addEventListener('change', handleFiles);
+        
+        // 拖拽功能
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFiles({ target: { files } });
+        });
+        
+        function handleFiles(event) {
+            const files = event.target.files;
+            console.log('📁 选择了文件:', files.length, '个');
+            
+            if (files.length === 0) {
+                showStatus('请选择至少一个文件', 'error');
+                return;
+            }
+            
+            // 清除之前的预览
+            preview.innerHTML = '';
+            
+            Array.from(files).forEach((file, index) => {
+                console.log(`📄 文件 ${index + 1}:`, {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+                
+                // 验证文件
+                if (!validateFile(file)) {
+                    return;
+                }
+                
+                // 显示预览
+                showPreview(file);
+            });
+            
+            showStatus(`✅ 成功选择 ${files.length} 个文件！上传功能正常工作`, 'success');
+        }
+        
+        function validateFile(file) {
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            
+            if (file.size > maxSize) {
+                showStatus(`❌ 文件 "${file.name}" 过大 (${(file.size / 1024 / 1024).toFixed(1)}MB)，请选择小于5MB的图片`, 'error');
+                return false;
+            }
+            
+            if (!allowedTypes.includes(file.type)) {
+                showStatus(`❌ 文件 "${file.name}" 格式不支持，请选择JPG、PNG或WebP格式`, 'error');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewDiv = document.createElement('div');
+                previewDiv.innerHTML = `
+                    <img src="${e.target.result}" alt="预览">
+                    <div class="file-info">
+                        📄 ${file.name}<br>
+                        📏 ${(file.size / 1024).toFixed(1)} KB<br>
+                        🎨 ${file.type}
+                    </div>
+                `;
+                preview.appendChild(previewDiv);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function showStatus(message, type) {
+            status.innerHTML = `<div class="status ${type}">${message}</div>`;
+            console.log(`📢 状态: ${message}`);
+        }
+        
+        function clearTest() {
+            fileInput.value = '';
+            preview.innerHTML = '';
+            status.innerHTML = '';
+            console.log('🧹 清除测试数据');
+            showStatus('测试已清除', 'info');
+        }
+        
+        // 页面加载完成
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('✅ 页面DOM加载完成');
+            showStatus('📸 上传测试页面已准备就绪，请点击上传区域测试功能', 'info');
+        });
+    </script>
+</body>
+</html>
