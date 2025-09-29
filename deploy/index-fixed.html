@@ -229,8 +229,18 @@
         .download-btn:hover { background: #2196F3; }
 
         /* 操作界面 */
+        .action-content {
+            text-align: center;
+        }
+        
         .action-content h2 {
             font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .action-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
             margin-bottom: 40px;
         }
 
@@ -355,6 +365,9 @@
                             <button id="dislikeBtn" class="action-btn dislike-btn">👎</button>
                             <button id="downloadBtn" class="action-btn download-btn">⬇️</button>
                         </div>
+                        <div class="card-footer">
+                            <p style="font-size: 0.9rem; color: #666; margin: 10px 0;">点击图片继续操作</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -364,6 +377,7 @@
         <div id="actionScreen" class="screen">
             <div class="action-content">
                 <h2>What's Next?</h2>
+                <p class="action-subtitle">继续创作更多AI写真，或返回首页上传新照片</p>
                 <div class="action-buttons">
                     <button id="againBtn" class="primary-btn">Nano Photo Again!</button>
                     <button id="backBtn" class="secondary-btn">Back to Start</button>
@@ -640,6 +654,14 @@
             showActionScreen() {
                 console.log('⚡ 显示操作界面');
                 this.showScreen('actionScreen');
+                
+                // 重置卡片状态，为下次使用做准备
+                if (this.elements.cardBack && this.elements.cardFront) {
+                    this.elements.cardBack.style.transform = 'rotateY(0deg)';
+                    this.elements.cardFront.style.transform = 'rotateY(180deg)';
+                    this.elements.cardBack.style.display = 'flex';
+                    this.elements.cardFront.style.display = 'none';
+                }
             }
             
             showScreen(screenId) {
@@ -671,13 +693,37 @@
             handleDownload() {
                 console.log('⬇️ 下载');
                 if (this.generatedImage) {
-                    const link = document.createElement('a');
-                    link.href = this.generatedImage;
-                    link.download = `nano-photo-${Date.now()}.jpg`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    this.showFeedback('📥 下载已开始！');
+                    // 如果是外部URL，需要先下载到本地再提供下载
+                    if (this.generatedImage.startsWith('http')) {
+                        fetch(this.generatedImage)
+                            .then(response => response.blob())
+                            .then(blob => {
+                                const url = window.URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = `nano-photo-${Date.now()}.jpg`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(url);
+                                this.showFeedback('📥 图片下载已开始！');
+                            })
+                            .catch(error => {
+                                console.error('下载失败:', error);
+                                // 备用方案：直接打开图片
+                                window.open(this.generatedImage, '_blank');
+                                this.showFeedback('📥 图片已在新窗口打开！');
+                            });
+                    } else {
+                        // 本地图片直接下载
+                        const link = document.createElement('a');
+                        link.href = this.generatedImage;
+                        link.download = `nano-photo-${Date.now()}.jpg`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        this.showFeedback('📥 图片下载已开始！');
+                    }
                 }
             }
             
