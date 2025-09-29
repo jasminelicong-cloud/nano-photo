@@ -319,9 +319,30 @@ class NanoPhotoApp {
         console.log('🎉 开始AI生成完成流程');
         
         try {
-            // 使用模拟API生成图片
+            // 优先使用真实API
+            if (window.NanoPhotoAPI && this.currentImage && this.currentStyle) {
+                console.log('🚀 使用真实API生成图片...');
+                const realAPI = new NanoPhotoAPI();
+                const result = await realAPI.generatePhoto(
+                    this.currentImage, 
+                    this.currentStyle.prompt, 
+                    this.currentStyle.id
+                );
+                
+                if (result.success) {
+                    console.log('✅ 真实API生成成功');
+                    this.generatedImage = result.imageUrl;
+                    this.isGenerating = false;
+                    this.showResult();
+                    return;
+                } else {
+                    console.error('❌ 真实API生成失败:', result.error);
+                }
+            }
+            
+            // 备用：使用模拟API
             if (window.MockNanoPhotoAPI && this.currentImage && this.currentStyle) {
-                console.log('🤖 使用模拟API生成图片...');
+                console.log('🤖 使用模拟API作为备用...');
                 const mockAPI = new MockNanoPhotoAPI();
                 const result = await mockAPI.generatePhoto(
                     this.currentImage, 

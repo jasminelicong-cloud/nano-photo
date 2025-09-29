@@ -1,7 +1,7 @@
 // Nano Photo 配置文件
 window.NANO_CONFIG = {
     // API配置
-    API_BASE_URL: 'https://api.nano-banana.com/v1',
+    API_BASE_URL: 'https://api.tu-zi.com/v1',
     API_KEY: 'sk-3RNycSK4jptF86qmwtFAzYNiNAKEt0i1xNZZEufKs6OmU0Mm', // 真实API密钥已配置
     
     // 应用配置
