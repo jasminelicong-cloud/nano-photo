@@ -4,13 +4,15 @@ class NanoPhotoAPI {
         this.apiConfig = {
             baseURL: 'https://api.tu-zi.com/v1',
             apiKey: window.NANO_CONFIG?.API_KEY || 'sk-3RNycSK4jptF86qmwtFAzYNiNAKEt0i1xNZZEufKs6OmU0Mm',
+            modelName: window.NANO_CONFIG?.MODEL_NAME || 'gemini-2.5-flash-image',
             timeout: 60000, // 60秒超时
             maxRetries: 2
         };
         
         console.log('🔧 API配置:', {
             baseURL: this.apiConfig.baseURL,
-            apiKey: this.apiConfig.apiKey.substring(0, 10) + '...'
+            apiKey: this.apiConfig.apiKey.substring(0, 10) + '...',
+            modelName: this.apiConfig.modelName
         });
     }
 
@@ -76,7 +78,9 @@ class NanoPhotoAPI {
     // 图片生成格式 (类似OpenAI DALL-E)
     async tryImageGenerationFormat(url, imageData, stylePrompt) {
         const requestBody = {
+            model: this.apiConfig.modelName,
             prompt: stylePrompt,
+            image: imageData, // 添加原图数据
             n: 1,
             size: "512x640",
             response_format: "url"
@@ -116,7 +120,7 @@ class NanoPhotoAPI {
     // 聊天完成格式 (类似GPT)
     async tryChatCompletionFormat(url, imageData, stylePrompt) {
         const requestBody = {
-            model: "gpt-4-vision-preview",
+            model: this.apiConfig.modelName,
             messages: [
                 {
                     role: "user",
@@ -167,6 +171,7 @@ class NanoPhotoAPI {
         const imageBlob = this.base64ToBlob(imageData);
         formData.append('image', imageBlob, 'upload.jpg');
         formData.append('prompt', stylePrompt);
+        formData.append('model', this.apiConfig.modelName);
         formData.append('style_id', styleId);
         
         // 添加常见参数

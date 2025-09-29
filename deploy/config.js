@@ -3,6 +3,7 @@ window.NANO_CONFIG = {
     // API配置
     API_BASE_URL: 'https://api.tu-zi.com/v1',
     API_KEY: 'sk-3RNycSK4jptF86qmwtFAzYNiNAKEt0i1xNZZEufKs6OmU0Mm', // 真实API密钥已配置
+    MODEL_NAME: 'gemini-2.5-flash-image', // Gemini图像生成模型
     
     // 应用配置
     APP_NAME: 'Nano Photo',
