@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Photo Debug</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="upload-screen" class="screen active">
+            <div class="header">
+                <h1 class="app-title">Nano Photo Debug</h1>
+                <p class="subtitle">Debug Mode</p>
+            </div>
+            
+            <div class="upload-area">
+                <div class="upload-box" id="upload-box">
+                    <div class="upload-icon">📸</div>
+                    <h3>Upload Your Photo</h3>
+                    <p>Click or drag to upload your image</p>
+                    <small>支持 JPG, PNG 格式，最大 5MB</small>
+                    <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" hidden>
+                </div>
+            </div>
+            
+            <div id="debug-info" style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
+                <h4>Debug Information:</h4>
+                <div id="debug-log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug版本的简化脚本
+        console.log('Debug script loaded');
+        
+        function debugLog(message) {
+            const debugLog = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            console.log(message);
+        }
+        
+        debugLog('Initializing debug version...');
+        
+        // 检查元素是否存在
+        const uploadBox = document.getElementById('upload-box');
+        const fileInput = document.getElementById('file-input');
+        
+        if (uploadBox) {
+            debugLog('✅ Upload box found');
+        } else {
+            debugLog('❌ Upload box NOT found');
+        }
+        
+        if (fileInput) {
+            debugLog('✅ File input found');
+        } else {
+            debugLog('❌ File input NOT found');
+        }
+        
+        // 添加点击事件监听器
+        if (uploadBox && fileInput) {
+            uploadBox.addEventListener('click', () => {
+                debugLog('📱 Upload box clicked!');
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    debugLog(`📁 File selected: ${file.name} (${file.size} bytes)`);
+                    debugLog(`📄 File type: ${file.type}`);
+                } else {
+                    debugLog('❌ No file selected');
+                }
+            });
+            
+            debugLog('✅ Event listeners added successfully');
+        } else {
+            debugLog('❌ Cannot add event listeners - elements missing');
+        }
+        
+        // 检查是否有其他脚本冲突
+        debugLog(`Scripts loaded: ${document.scripts.length}`);
+        for (let i = 0; i < document.scripts.length; i++) {
+            debugLog(`Script ${i}: ${document.scripts[i].src || 'inline'}`);
+        }
+    </script>
+</body>
+</html>
