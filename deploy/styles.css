@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Caveat', cursive;
+    font-family: 'Inter', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     display: flex;
@@ -36,9 +36,14 @@ body {
     display: flex;
 }
 
-.header {
+/* 上传界面样式 */
+.upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
     text-align: center;
-    margin-bottom: 40px;
 }
 
 .app-title {
@@ -50,21 +55,14 @@ body {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.subtitle {
+.app-subtitle {
     font-size: 1.2rem;
     color: #718096;
     font-weight: 400;
+    margin-bottom: 40px;
 }
 
-/* 上传界面样式 */
 .upload-area {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.upload-box {
     width: 100%;
     height: 300px;
     border: 3px dashed #cbd5e0;
@@ -76,12 +74,19 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     background: rgba(247, 250, 252, 0.8);
+    margin-bottom: 30px;
 }
 
-.upload-box:hover {
+.upload-area:hover {
     border-color: #667eea;
     background: rgba(102, 126, 234, 0.05);
     transform: translateY(-2px);
+}
+
+.upload-area.dragover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    transform: scale(1.02);
 }
 
 .upload-icon {
@@ -90,25 +95,62 @@ body {
     opacity: 0.7;
 }
 
-.upload-box h3 {
+.upload-area h3 {
     font-size: 1.5rem;
     color: #4a5568;
     margin-bottom: 10px;
     font-weight: 600;
 }
 
-.upload-box p {
+.upload-area p {
     color: #718096;
     font-size: 1rem;
+    margin-bottom: 10px;
 }
 
-/* 加载界面样式 */
-.loading-container {
-    flex: 1;
+.upload-hint {
+    color: #a0aec0;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.features {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.feature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.feature-icon {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+.feature span:last-child {
+    font-size: 0.9rem;
+    color: #718096;
+    font-weight: 500;
+}
+
+/* 生成界面样式 */
+.generating-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    height: 100%;
+    text-align: center;
+}
+
+.loading-animation {
+    margin-bottom: 30px;
 }
 
 .loading-spinner {
@@ -118,7 +160,6 @@ body {
     border-top: 4px solid #667eea;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin-bottom: 30px;
 }
 
 @keyframes spin {
@@ -126,34 +167,63 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-.loading-text {
-    font-size: 1.3rem;
+.loading-title {
+    font-size: 1.5rem;
     color: #4a5568;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     font-weight: 600;
 }
 
-.loading-wait {
-    font-size: 1rem;
+.loading-text {
+    font-size: 1.1rem;
     color: #718096;
+    margin-bottom: 30px;
+}
+
+.progress-bar {
+    width: 200px;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 3px;
+    animation: progress 3s ease-in-out infinite;
+}
+
+@keyframes progress {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+.loading-hint {
+    font-size: 1rem;
+    color: #a0aec0;
     font-style: italic;
 }
 
 /* 结果界面样式 */
-.card-container {
-    flex: 1;
+.result-container {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-bottom: 30px;
+    height: 100%;
 }
 
-.photo-card {
+.card-container {
     width: 280px;
     height: 350px;
     position: relative;
     cursor: pointer;
     perspective: 1000px;
+    margin-bottom: 30px;
 }
 
 .card-back,
@@ -176,6 +246,7 @@ body {
     color: white;
     text-align: center;
     padding: 30px;
+    transform: rotateY(0deg);
 }
 
 .card-front {
@@ -185,11 +256,11 @@ body {
     flex-direction: column;
 }
 
-.photo-card.flipped .card-back {
+.card-container.flipped .card-back {
     transform: rotateY(-180deg);
 }
 
-.photo-card.flipped .card-front {
+.card-container.flipped .card-front {
     transform: rotateY(0deg);
 }
 
@@ -206,24 +277,26 @@ body {
     border-radius: 15px;
 }
 
+.card-content {
+    position: relative;
+    z-index: 1;
+}
+
 .card-back h3 {
     font-size: 1.5rem;
     margin-bottom: 15px;
     font-weight: 600;
-    z-index: 1;
 }
 
-.click-hint {
+.card-back p {
     font-size: 1.1rem;
     margin-bottom: 15px;
     opacity: 0.9;
-    z-index: 1;
 }
 
-.tap-icon {
+.click-indicator {
     font-size: 2rem;
     animation: bounce 2s infinite;
-    z-index: 1;
 }
 
 @keyframes bounce {
@@ -238,14 +311,14 @@ body {
     }
 }
 
-#generated-image {
+.generated-image {
     width: 100%;
     height: 250px;
     object-fit: cover;
     border-radius: 15px 15px 0 0;
 }
 
-.action-buttons {
+.image-actions {
     display: flex;
     justify-content: space-around;
     padding: 20px;
@@ -263,7 +336,7 @@ body {
     padding: 10px;
     border-radius: 10px;
     transition: all 0.3s ease;
-    font-family: 'Caveat', cursive;
+    font-family: 'Inter', sans-serif;
 }
 
 .action-btn:hover {
@@ -271,7 +344,7 @@ body {
     transform: translateY(-2px);
 }
 
-.action-btn .icon {
+.btn-icon {
     font-size: 1.5rem;
     margin-bottom: 5px;
 }
@@ -294,19 +367,40 @@ body {
     background: rgba(66, 153, 225, 0.1);
 }
 
-/* 再次生成按钮样式 */
-.next-actions {
+/* 操作界面样式 */
+.action-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+}
+
+.action-container h2 {
+    font-size: 1.8rem;
+    color: #4a5568;
+    margin-bottom: 40px;
+    font-weight: 600;
+}
+
+.action-buttons {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    width: 100%;
 }
 
 .primary-btn,
 .secondary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     padding: 15px 25px;
     border: none;
     border-radius: 25px;
-    font-family: 'Caveat', cursive;
+    font-family: 'Inter', sans-serif;
     font-size: 1.2rem;
     font-weight: 600;
     cursor: pointer;
@@ -346,13 +440,17 @@ body {
         font-size: 2.5rem;
     }
     
-    .photo-card {
+    .card-container {
         width: 250px;
         height: 320px;
     }
     
-    #generated-image {
+    .generated-image {
         height: 220px;
+    }
+    
+    .upload-area {
+        height: 250px;
     }
 }
 
@@ -386,4 +484,43 @@ body {
     100% {
         transform: scale(1);
     }
+}
+
+/* 成功提示样式 */
+.success-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #48bb78;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(72, 187, 120, 0.3);
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* 错误提示样式 */
+.error-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #f56565;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(245, 101, 101, 0.3);
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
 }
