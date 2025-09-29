@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .log {
+            background: rgba(0,0,0,0.3);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: left;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .info { color: #74c0fc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Nano Photo 简单测试</h1>
+        <p>这是一个最基础的测试页面，用来检查基本功能</p>
+        
+        <div class="test-section">
+            <h3>📋 基础测试</h3>
+            <button onclick="testBasics()">测试基础功能</button>
+            <button onclick="testConfig()">测试配置加载</button>
+            <button onclick="testAPI()">测试API类</button>
+            <button onclick="clearLog()">清空日志</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>📸 图片上传测试</h3>
+            <input type="file" id="testFile" accept="image/*">
+            <button onclick="testImageUpload()">测试图片处理</button>
+        </div>
+        
+        <div id="log" class="log">等待测试...</div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            logElement.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function testBasics() {
+            log('🚀 开始基础测试...', 'info');
+            
+            // 测试基本JavaScript功能
+            try {
+                log('✅ JavaScript基础功能正常', 'success');
+                
+                // 测试DOM操作
+                const testDiv = document.createElement('div');
+                testDiv.textContent = 'test';
+                log('✅ DOM操作正常', 'success');
+                
+                // 测试localStorage
+                localStorage.setItem('test', 'value');
+                const value = localStorage.getItem('test');
+                if (value === 'value') {
+                    log('✅ localStorage正常', 'success');
+                } else {
+                    log('❌ localStorage异常', 'error');
+                }
+                localStorage.removeItem('test');
+                
+                // 测试fetch API
+                if (typeof fetch !== 'undefined') {
+                    log('✅ Fetch API可用', 'success');
+                } else {
+                    log('❌ Fetch API不可用', 'error');
+                }
+                
+                log('🎉 基础测试完成', 'success');
+                
+            } catch (error) {
+                log(`❌ 基础测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testConfig() {
+            log('⚙️ 测试配置加载...', 'info');
+            
+            // 动态加载配置文件
+            const script = document.createElement('script');
+            script.src = 'config.js';
+            script.onload = function() {
+                if (window.NANO_CONFIG) {
+                    log('✅ 配置文件加载成功', 'success');
+                    log(`📊 API Base URL: ${window.NANO_CONFIG.API_BASE_URL}`, 'info');
+                    log(`🔑 API Key: ${window.NANO_CONFIG.API_KEY ? window.NANO_CONFIG.API_KEY.substring(0, 10) + '...' : '未设置'}`, 'info');
+                    log(`🤖 Model: ${window.NANO_CONFIG.MODEL_NAME || '未设置'}`, 'info');
+                    log(`🎭 风格数量: ${window.NANO_CONFIG.PHOTO_STYLES ? window.NANO_CONFIG.PHOTO_STYLES.length : 0}`, 'info');
+                } else {
+                    log('❌ 配置文件加载失败 - window.NANO_CONFIG未定义', 'error');
+                }
+            };
+            script.onerror = function() {
+                log('❌ 配置文件加载失败 - 网络错误', 'error');
+            };
+            document.head.appendChild(script);
+        }
+
+        function testAPI() {
+            log('🔌 测试API类加载...', 'info');
+            
+            // 动态加载API文件
+            const script = document.createElement('script');
+            script.src = 'api-gemini.js';
+            script.onload = function() {
+                if (window.NanoPhotoAPI) {
+                    log('✅ NanoPhotoAPI类加载成功', 'success');
+                    
+                    try {
+                        const api = new window.NanoPhotoAPI();
+                        log('✅ API实例创建成功', 'success');
+                        
+                        const status = api.getStatus();
+                        log(`📊 API状态: ${JSON.stringify(status)}`, 'info');
+                        
+                    } catch (error) {
+                        log(`❌ API实例创建失败: ${error.message}`, 'error');
+                    }
+                } else {
+                    log('❌ NanoPhotoAPI类未定义', 'error');
+                }
+            };
+            script.onerror = function() {
+                log('❌ API文件加载失败', 'error');
+            };
+            document.head.appendChild(script);
+        }
+
+        function testImageUpload() {
+            log('📸 测试图片上传处理...', 'info');
+            
+            const fileInput = document.getElementById('testFile');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                log('❌ 请先选择一张图片', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            log(`📄 文件信息: ${file.name}, ${file.size} bytes, ${file.type}`, 'info');
+            
+            // 测试文件读取
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                log(`✅ 文件读取成功, 数据长度: ${dataUrl.length}`, 'success');
+                
+                // 测试base64处理
+                if (dataUrl.startsWith('data:image/')) {
+                    log('✅ Base64格式正确', 'success');
+                    
+                    // 创建图片预览
+                    const img = document.createElement('img');
+                    img.src = dataUrl;
+                    img.style.maxWidth = '200px';
+                    img.style.maxHeight = '200px';
+                    img.style.borderRadius = '10px';
+                    img.style.margin = '10px';
+                    
+                    const logElement = document.getElementById('log');
+                    logElement.appendChild(img);
+                    
+                    log('✅ 图片预览创建成功', 'success');
+                } else {
+                    log('❌ Base64格式错误', 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                log('❌ 文件读取失败', 'error');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        // 页面加载完成后自动运行基础测试
+        window.addEventListener('load', function() {
+            log('🌟 页面加载完成', 'success');
+            setTimeout(testBasics, 500);
+        });
+
+        // 错误监听
+        window.addEventListener('error', function(e) {
+            log(`🚨 JavaScript错误: ${e.message} 在 ${e.filename}:${e.lineno}`, 'error');
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            log(`🚨 Promise拒绝: ${e.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>
